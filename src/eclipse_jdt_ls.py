@@ -1,7 +1,3 @@
-"""
-    使用eclipse.jdt.ls的python实现multilspy来对cceval的java数据集静态分析
-"""
-
 import asyncio
 import os
 import shutil
@@ -71,8 +67,6 @@ async def single_request(repo: str, fpath: str, line: int, col: int, req_type: R
         return results
 
 async def multi_request_get_import(repo: str, datas: list):
-    """处理import
-    """
     config = MultilspyConfig.from_dict({"code_language": LANGUAGE})
     logger = MultilspyLogger()
     repo_dir = os.path.join(REPOS_DIR[LANGUAGE], repo)
@@ -89,11 +83,9 @@ async def multi_request_get_import(repo: str, datas: list):
                     assert col > 0
                     rets = await lsp.request_definition(data['metadata']['file'], i, col)
 
-                    # 若有返回内容，并且是本仓库的import
                     # jar uri -> "jdt://xxx"
                     # repo uri -> "file:///xxx"
                     if len(rets) > 0 and rets[0]['uri'].startswith('file'):
-                        # 确认import的definition返回的结果只有一条
                         assert len(rets) == 1
                         data['import_definition'][line.strip()] = rets
 
@@ -114,7 +106,7 @@ async def multi_request_get_completion(repo: str, datas: list):
             methods = []
             stmts = []
             for ret in rets: 
-                if ret['kind'] == 2: # lsp 协议说明kind为2则是method
+                if ret['kind'] == 2:
                     methods.append(ret['detail'])
                 else:
                     try:
@@ -134,14 +126,10 @@ async def multi_request_get_completion(repo: str, datas: list):
             data["ls_context"] = context
 
 def get_import_src_for_impt_stmt(abs_fpath) -> dict:
-    """
-    根据传入的java文件绝对路径，返回import内容。
-    """
     import_definitions = {}
     with open(abs_fpath, 'r') as f:
         lines = f.readlines()
     
-    # 获取到包名
     package = None
     for line in lines:
         if line.lstrip().startswith('package'):
@@ -161,14 +149,11 @@ def get_import_src_for_impt_stmt(abs_fpath) -> dict:
             pkg_i = abs_fpath.find(package.replace('.', '/'))
             import_uri = os.path.join(abs_fpath[:pkg_i], import_pkg.replace('.', '/') + '.java')
 
-            # 是仓库内导入
             if os.path.exists(import_uri):
                 import_definitions[line.strip()] = import_uri
     return import_definitions
 
 def get_import():
-    """使用正则处理import
-    """
     datas = load_jsonl('data/datasets/cceval/java/cceval_java.jsonl')
     start = time.time()
 
@@ -184,7 +169,6 @@ def lsp():
 
     start = time.time()
 
-    # 将数据根据仓库归类
     repo_dict = {}
     for data in datas:
         repo = data['metadata']['repository']
@@ -193,7 +177,6 @@ def lsp():
         else:
             repo_dict[repo] = [data]
 
-    # 逐仓库进行import处理
     for key, value in repo_dict.items():
         print(f'processing repo: {key}..')
         asyncio.run(multi_request_get_import(key, value))
@@ -225,8 +208,3 @@ if __name__ == '__main__':
     rets = asyncio.run(single_request(os.path.join(REPOS_DIR['java'], repo), fpath, line, col, REQUEST_TYPE.COMPLETION))
     for ret in rets:
         print(ret)
-
-
-
-
-

@@ -105,7 +105,6 @@ class JavaTreeSitterWrapper:
                 assert len(m_captures) == len(mb_captures)
                 captures = [(m_captures[i][0].start_point, mb_captures[i][0].start_point) for i in range(len(m_captures))]
 
-            # 可能存在接口，没有方法体，数量则无法对应上
             except:
                 captures = []
                 for i in range(len(m_captures)):
@@ -170,37 +169,30 @@ def clear_sa_cache():
 
 def add_sys_path(case, repo_dir):
     added_path = []
-    # 文件同级目录
     filepath = repo_dir + "/" + case["metadata"]["repository"] + "/" + case["metadata"]["file"]
     added_path.append(os.path.dirname(filepath))
 
-    # 仓库目录，和其下的src目录，和其下的同名子目录
     sub_repo_dir = repo_dir + "/" + case["metadata"]["repository"]
     added_path.append(sub_repo_dir)
     added_path.append(sub_repo_dir + "/src")
     added_path.append(sub_repo_dir + "/" + case["metadata"]["repository"])
 
-    # 上一级目录
     added_path.append(os.path.dirname(os.path.dirname(filepath)))
 
-    # 如果含src文件夹，则将测试文件夹的父目录和它本身加入
     src_index = filepath.find("src")
     if src_index != -1:
         added_path.append(filepath[:src_index])
         added_path.append(filepath[:src_index+3])
 
-    # 如果含测试文件夹，则将测试文件夹的父目录加入
     test_index = filepath.find("tests")
     if test_index != -1:
         added_path.append(filepath[:test_index])
 
-    # 如果含app文件夹，则将app文件夹的父目录加入
     app_index = filepath.find("app")
     if app_index != -1:
         added_path.append(filepath[:app_index])
         added_path.append(filepath[:app_index+3])
 
-    # 上上级目录
     added_path.append(os.path.dirname(os.path.dirname(os.path.dirname(filepath))))
     added_path = [path for path in added_path if os.path.exists(path)]
     return added_path
@@ -231,7 +223,6 @@ def handle_function(modules):
     return "def " + modules[0].get_signatures()[0].to_string()
 
 def handle_module(module, repo_dir, deep=0):
-    # deep:防止循环引用
     try:
         deep += 1
         if not str(module.module_path).startswith(repo_dir) or deep > 3:
@@ -317,11 +308,9 @@ def find_import_sources(src_file_path, script, repo_dir, src_line_len) -> list:
             else:
                 module_path,_ = get_module_path(node, src, node.module, repo_dir, script)
 
-            # 本地module，并且module不为None（相对地址）
             if module_path != None or node.module == None:
                 for alias in node.names:
                     name = alias.name
-                    # 多行
                     if isinstance(src, list):
                         for line_idx, line in enumerate(src):
                             pattern = fr'\b{name}\b'
@@ -347,7 +336,6 @@ def find_import_sources(src_file_path, script, repo_dir, src_line_len) -> list:
                                     # print(src_file_path)
                                     # input()
                                     continue
-                    # 单行
                     else:
                         pattern = fr'\b{name}\b'
                         match = re.search(pattern, src)
@@ -395,7 +383,6 @@ def import_analysize(case, language = 'python'):
         with open(abs_fpath, 'r') as f:
             lines = f.readlines()
         
-        # 获取到包名
         package = None
         for line in lines:
             if line.lstrip().startswith('package'):
@@ -415,7 +402,6 @@ def import_analysize(case, language = 'python'):
                 pkg_i = abs_fpath.find(package.replace('.', '/'))
                 import_uri = os.path.join(abs_fpath[:pkg_i], import_pkg.replace('.', '/') + '.java')
 
-                # 是仓库内导入
                 if os.path.exists(import_uri):
                     # uris.append(import_uri)
                     sources[import_pkg] = {

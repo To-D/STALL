@@ -173,7 +173,6 @@ class PredictionWindowMaker:
             context_start_lineno = prediction['metadata']['context_start_lineno']
             start_line_no = max(context_start_lineno, line_no - delta_size)
             for sample in [prediction['choices'][i]['text'] for i in range(len(prediction['choices']))]:
-                # TODO actually only one sample is generated
                 sample_lines = [i for i in sample.splitlines() if i.strip()]
                 new_code_lines = code_lines[:line_no] + sample_lines
                 end_line_no = min(len(new_code_lines), line_no + self.window_size - delta_size)
@@ -215,8 +214,6 @@ class MakeWindowWrapper:
             self.task_file_path = FilePathBuilder.short_random_line_completion_benchmark
         elif benchmark == CONSTANTS.short_api_benchmark:
             self.task_file_path = FilePathBuilder.short_api_completion_benchmark
-
-        self.task_file_path = "data/query/repocoder_format_samples_50.jsonl"
 
 
     def window_for_repo_files(self):

@@ -61,7 +61,6 @@ def evaluate_line_EM_ES(data):
             gt = d['metadata']['ground_truth'].strip()
             # gt = d['metadata']['ground_truth']
 
-        # 只有注释不同也视为相同
         if gt.startswith(predict) and gt[len(predict):].strip().startswith("#"):
             gt = predict
 

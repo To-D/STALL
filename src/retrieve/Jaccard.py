@@ -20,9 +20,7 @@ class CodeSearchWorker():
         hole_fpath_tuple = tuple(query_line['metadata']['fpath_tuple'])
         context_is_not_after_hole = []
         for metadata in repo_embedding_line['metadata']:
-            # 若是别的语言，那么传入的fpath_tuple将是'language/xxx'
             if self.language != 'python':
-                # 不更改metadata中原本的内容
                 fpath = metadata['fpath_tuple'][1:]
             else:
                 fpath = metadata['fpath_tuple']
@@ -31,7 +29,6 @@ class CodeSearchWorker():
                 context_is_not_after_hole.append(True)
                 continue
             # now we know that the repo line is in the same file as the hole
-            # 仓库片段必须在查询片单之上
             if metadata['end_line_no'] <= query_line['metadata']['context_start_lineno']:
                 context_is_not_after_hole.append(True)
                 continue
