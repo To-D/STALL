@@ -1,2 +1,6 @@
 # STALL
-Repository of the $STALL^+$ framework
+We propose a framework STALL+, which supports an extendable and customizable integration of multiple static analysis strategies into the complete pipeline of LLM-based repository-level code completion. In particular, STALL+ can integrate static analysis along the prompting phase (before model inference), the decoding phase (during model inference), and the post-processing phase (after mode inference). Additionally, STALL+ is not only extendable for different static analysis strategies and their combination, but also compatible with RAG techniques.
+
+## Repository Structure
+* **src**: the source code of STALL+.
+* **data**: the experimental results of `StarCoderBase-7B`, `CodeLlama-7B` and `DeepSeek-Coder-6.7B` on the Python and Java dataset of the `CrossCodeEval` benchmark.
