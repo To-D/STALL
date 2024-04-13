@@ -1,2 +1,2 @@
 # STALL
-Repository of the STALL framework
+Repository of the $STALL^+$ framework
