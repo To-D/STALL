@@ -78,7 +78,6 @@ def extract_last_identifier(java_code):
     identifier = ""
     i = len(java_code) - 1
     
-    # 从字符串末尾往前遍历
     while i >= 0:
         if java_code[i].isalnum() or java_code[i] == '_' or java_code[i].isalpha():
             identifier = java_code[i] + identifier
@@ -102,20 +101,15 @@ def static_analysis(query, symbol_embeddings, so_far_gen):
     if options:
         analysis_probobility = torch.zeros(MODEL_VECTOR_SIZE)
         for option in options:
-            # java中只返回完整的completionText
             if query['prompt'].endswith(option['completionText']):
-                # TODO: symbo_embddings
-                # 一个补全补完后，下一个可能是符号
                 for idx, i in enumerate(symbol_embeddings):
                     analysis_probobility[idx] = i
                 prefix = option['completionText']
-                # 也有可能是以该补全为前缀的另一个补全
                 for option in options:
                     if option['completionText'].startswith(prefix):
                         next_token_id = tokenizer(option['completionText'], add_special_tokens = False).input_ids[0]
                         analysis_probobility[next_token_id] = 1
                 break
-            # 有大小写相同的情况，如AAA和aaa，都会返回''
             if option['completionText'] == '': continue
             last_identifier = extract_last_identifier(so_far_gen)
             complete_suffix = option['completionText'][len(last_identifier):]
@@ -170,9 +164,6 @@ class SALogitsProcessor(LogitsProcessor):
 
 class StopAtSpecificTokenCriteria(StoppingCriteria):
     def __init__(self, token_id_list: List[int] = None):
-        """
-        :param token_id_list: 停止生成的指定token的id的列表
-        """
         self.token_id_list = token_id_list
         self.stop_conditions = None
 
@@ -341,7 +332,6 @@ def predict(model, tokenizer, data, output_file, using_decoding=False, using_pos
                             
                             if using_postprocessing:
                                 dereference_monitors = []
-                                # BeamSearch的长度是3，所以生成三个monitor
                                 for _ in range(3):
                                     dereference_monitors.append(DereferencesMonitor(HFTokenizerWrapper(tokenizer), filebuffer))
                                 # dereference_monitor = DereferencesMonitor(HFTokenizerWrapper(tokenizer), filebuffer)

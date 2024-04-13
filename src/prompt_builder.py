@@ -20,7 +20,6 @@ def clear_sa_cache():
     clear_cache()
 
 def transform_format(data):
-    '''将Repocoder运行需要的数据加到源数据中'''
     for d in tqdm(data):
         metadata = d["metadata"]
         metadata["ground_truth"] = d["groundtruth"]
@@ -102,7 +101,6 @@ class ContextFactory:
 
     def construct_eclipse_jdt_ls_context(datas, tokenizer, max_length=3000):
         os.environ["TOKENIZERS_PARALLELISM"] = "true"
-        # 将数据根据仓库归类
         repo_dict = {}
         for data in datas:
             repo = data['metadata']['repository']
@@ -110,7 +108,6 @@ class ContextFactory:
                 repo_dict[repo].append(data)
             else:
                 repo_dict[repo] = [data]
-         # 逐仓库进行import处理
         for key, value in repo_dict.items():
             print(f'processing repo: {key}..')
             asyncio.run(multi_request_get_completion(key, value))

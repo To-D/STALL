@@ -23,37 +23,30 @@ import json
 
 def add_sys_path(file_path, repo_name, repo_dir):
     added_path = []
-    # 文件同级目录
     filepath = file_path
     added_path.append(os.path.dirname(filepath))
 
-    # 仓库目录，和其下的src目录，和其下的同名子目录
     sub_repo_dir = repo_dir + "/" + repo_name
     added_path.append(sub_repo_dir)
     added_path.append(sub_repo_dir + "/src")
     added_path.append(sub_repo_dir + "/" + repo_name)
 
-    # 上一级目录
     added_path.append(os.path.dirname(os.path.dirname(filepath)))
 
-    # 如果含src文件夹，则将测试文件夹的父目录和它本身加入
     src_index = filepath.find("src")
     if src_index != -1:
         added_path.append(filepath[:src_index])
         added_path.append(filepath[:src_index+3])
 
-    # 如果含测试文件夹，则将测试文件夹的父目录加入
     test_index = filepath.find("tests")
     if test_index != -1:
         added_path.append(filepath[:test_index])
 
-    # 如果含app文件夹，则将app文件夹的父目录加入
     app_index = filepath.find("app")
     if app_index != -1:
         added_path.append(filepath[:app_index])
         added_path.append(filepath[:app_index+3])
 
-    # 上上级目录
     added_path.append(os.path.dirname(os.path.dirname(os.path.dirname(filepath))))
     added_path = [path for path in added_path if os.path.exists(path)]
     for path in added_path:
@@ -64,14 +57,10 @@ def add_sys_path(file_path, repo_name, repo_dir):
 
 class StopAtSpecificTokenCriteria(StoppingCriteria):
     def __init__(self, token_id_list: List[int] = None):
-        """
-        :param token_id_list: 停止生成的指定token的id的列表
-        """
         self.token_id_list = token_id_list
 
     def __call__(self, input_ids: torch.LongTensor, scores: torch.FloatTensor, **kwargs) -> bool:
         # return np.argmax(scores[-1].detach().cpu().numpy()) in self.token_id_list
-        # 储存scores会额外占用资源，所以直接用input_ids进行判断
         return input_ids[0][-1].detach().cpu().numpy() in self.token_id_list
 
 def get_symbol_embeddings(model_name):
@@ -124,8 +113,6 @@ def check_syntax(code, file_path, sub_repo_dir, lineno):
     pattern = fr':{lineno}:[0-9]*: ([A-Z][0-9]{{4}}):'
     for line in res.split("\n"):
         match = re.findall(pattern, line)
-        # unexpected EOF不算在内
-        # if match and match[0][0] == 'E' and not "unexpected EOF" in line and not "Module 'torch'" in line:
         if match and match[0][0] == 'E' and not "Module 'torch'" in line:
             os.remove(new_file_path)
             return False , line
@@ -135,12 +122,7 @@ def check_syntax(code, file_path, sub_repo_dir, lineno):
 # ----------- java --------------
 
 def run_javac_cmd(target_fpath: str, deps_fpath: List[str]) -> CompletedProcess:
-    """
-    运行javac指令
 
-    :param target_path: 目标文件的路径
-    :param deps_fpath: 目标文件相关的本仓库依赖文件
-    """
     command = ['javac', target_fpath] + list(deps_fpath) + ['-Xmaxerrs', '1000']
     result = subprocess.run(command, capture_output=True, text=True)
     # print("Return code:", result.returncode)
@@ -149,12 +131,6 @@ def run_javac_cmd(target_fpath: str, deps_fpath: List[str]) -> CompletedProcess:
     return result
 
 def analyze_javac_error_info(fpath: str, lineno: int, result_str: str) -> List[str]:
-    """
-    :param fpath: 目标绝对路径
-    :lineno: gt所在行 1-based
-
-    :return 返回对应行的错误信息
-    """
     errors = []
     key = f'{fpath}:{lineno}'
     for line in result_str.split('\n'):
@@ -190,14 +166,6 @@ def generate_random_string(length):
     return ''.join(random.choice(letters_and_digits) for i in range(length))
 
 def java_check_syntax(gen_line, file_path, lineno, task_id):
-    """
-    检查生成后的内容是否有语法错误
-
-    :param gen_line: 模型生成后的完整的一行代码
-    :param file_path: 目标文件绝对路径
-    :param sub_repo_dir: 仓库名
-    :param lineno: 行号 1-based
-    """
     err_dict = load_java_pre_errs()
 
     with open(file_path, 'r') as f:
@@ -217,11 +185,9 @@ def java_check_syntax(gen_line, file_path, lineno, task_id):
         else:
             return True, ""
         
-        # 长度不匹配
         if task_id not in err_dict.keys() or len(gen_errs) != len(err_dict[task_id]):
             return False, gen_errs
         
-        # 有新的错误
         for err in gen_errs:
             if err not in err_dict[task_id]:
                 return False, gen_errs

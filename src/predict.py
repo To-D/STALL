@@ -73,7 +73,6 @@ def static_analysis(query, symbol_embeddings):
                         next_token_id = tokenizer(option['complete'], add_special_tokens=False).input_ids[0]
                         analysis_probobility[next_token_id] = 1
                 break
-            # 有大小写相同的情况，如AAA和aaa，都会返回''
             if option['complete'] == '': continue
             next_token_ids = tokenizer(option['complete'], add_special_tokens=False).input_ids
             if next_token_ids:
@@ -107,11 +106,8 @@ class SALogitsProcessor(LogitsProcessor):
         sa_prob.to(device)
         scores[0][sa_prob == 0] = float('-inf')
 
-        # ## 提取前5名的token
-        # # 用softmax函数转换为概率分布
         # probabilities = torch.softmax(scores, dim=-1)
 
-        # # 提取top-5概率及其索引
         # top5_probabilities, top5_indices = torch.topk(probabilities, 5)
 
         # top_probs_list = top5_probabilities.detach().cpu().numpy().tolist()
@@ -137,9 +133,6 @@ class SALogitsProcessor(LogitsProcessor):
 
 class StopAtSpecificTokenCriteria(StoppingCriteria):
     def __init__(self, token_id_list: List[int] = None):
-        """
-        :param token_id_list: 停止生成的指定token的id的列表
-        """
         self.token_id_list = token_id_list
         self.stop_conditions = None
 
