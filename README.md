@@ -4,3 +4,7 @@ We propose a framework STALL+, which supports an extendable and customizable int
 ## Repository Structure
 * **src**: the source code of STALL+.
 * **data**: the experimental results of `StarCoderBase-7B`, `CodeLlama-7B` and `DeepSeek-Coder-6.7B` on the Python and Java dataset of the `CrossCodeEval` benchmark.
+
+## Hint
+*To improve file transfer efficiency, we have compressed the results into a `zip` file. Please click "<u>**View raw**</u>" to download the file and use the `unzip` command to decompress it.*
+
